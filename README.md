@@ -1,6 +1,6 @@
-# elm-signature README
+# vscode-elm-signature README
 
-This is the README for your extension "elm-signature". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "vscode-elm-signature". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 
