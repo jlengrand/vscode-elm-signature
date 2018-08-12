@@ -3,12 +3,11 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
 
-    // console.log('Congratulations, your extension "vscode-elm-signature" is now active!');
-    // vscode.window.showInformationMessage('Congratulations, your extension "vscode-elm-signature" is now active!');
-
     let elmSignatureDisplayer = new ElmSignatureDisplayer();
-    let elmSignaturecontroller = new ElmSignatureController(elmSignatureDisplayer);
+    const elmSignatureProvider = new ElmSignatureProvider(elmSignatureDisplayer);
+    let elmSignaturecontroller = new ElmSignatureController(elmSignatureDisplayer, elmSignatureProvider);
 
+    vscode.window.registerTreeDataProvider('elmSignatures', elmSignatureProvider);
     context.subscriptions.push(elmSignatureDisplayer);
     context.subscriptions.push(elmSignaturecontroller);
 }
@@ -35,7 +34,7 @@ class ElmFile{
 }
 
 class Utils{
-    // TODO: Extract workspace part only instead
+    // TODO: Extract workspace part only
     basename(path) {
         return path.split('/').reverse()[0];
     }
@@ -70,15 +69,21 @@ class ElmSignatureDisplayer{
     dispose() {
         this._statusBarItem.dispose();
     }
+
+    getSignatures(): Array<ElmFile>{
+        return this.elmSignatures;
+    }
 }
 
 class ElmSignatureController {
 
     private elmSignatureDisplayer: ElmSignatureDisplayer;
+    private elmSignatureProvider: ElmSignatureProvider;
     private _disposable: vscode.Disposable;
 
-    constructor(elmSignatureDisplayer: ElmSignatureDisplayer) {
+    constructor(elmSignatureDisplayer: ElmSignatureDisplayer, elmSignatureProvider: ElmSignatureProvider) {
         this.elmSignatureDisplayer = elmSignatureDisplayer;
+        this.elmSignatureProvider = elmSignatureProvider;
 
         let subscriptions: vscode.Disposable[] = [];
 
@@ -93,10 +98,8 @@ class ElmSignatureController {
     }
 
     private _onEvent() {
-        // console.log('EVENT!!!');
-        // vscode.window.showInformationMessage('EVENT!');
-
         this.elmSignatureDisplayer.updateDataFound();
+        this.elmSignatureProvider.refresh();
     }
 }
 
@@ -108,5 +111,32 @@ class ElmSignatureExtractor {
     extract(elmdocument: vscode.TextDocument) : string[] {
         const text = elmdocument.getText();
         return  text.match(this.elmSignatureRegexp);
+    }
+}
+
+class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
+
+    private elmSignatureDisplayer: ElmSignatureDisplayer;
+
+	private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
+    readonly onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
+    
+    constructor(elmSignatureDisplayer:ElmSignatureDisplayer){
+        this.elmSignatureDisplayer = elmSignatureDisplayer;
+    }
+
+    refresh(){
+        this._onDidChangeTreeData.fire();
+    }
+
+    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+		return element;
+    }
+
+    getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]>{
+        var elmFiles = this.elmSignatureDisplayer.getSignatures();
+        const signatures  = elmFiles.map(file => file.signatures());
+        const allSign = [].concat.apply([], signatures);
+        return allSign.map(s => new vscode.TreeItem(s));
     }
 }

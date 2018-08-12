@@ -15,6 +15,16 @@
     "activationEvents": [
         "workspaceContains:**/*.elm"
     ],
+    "contributes": {
+        "views": {
+            "explorer": [
+                {
+                    "id": "elmSignatures",
+                    "name": "Elm Signatures"
+                }
+            ]
+        }
+    },
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
