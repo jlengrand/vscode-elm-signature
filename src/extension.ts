@@ -114,8 +114,30 @@ class ElmSignatureExtractor {
     }
 }
 
+class ElmFileItem extends vscode.TreeItem{
+    signatures: ElmSignatureItem[];
+
+    constructor(fileName: string){
+        super(fileName, vscode.TreeItemCollapsibleState.Expanded);
+    }
+
+    setSignatures(signatures : ElmSignatureItem[]){
+        this.signatures = signatures;
+    }
+}
+
+class ElmSignatureItem extends vscode.TreeItem{
+    file: ElmFileItem;
+
+    constructor(label, file: ElmFileItem){
+        super(label, vscode.TreeItemCollapsibleState.None);
+        this.file = file;
+    }
+}
+
 class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
 
+    private signatureTree : ElmSignatureItem[] | ElmFileItem[] = null;
     private elmSignatureDisplayer: ElmSignatureDisplayer;
 
 	private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
@@ -126,6 +148,7 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
     }
 
     refresh(){
+        this.signatureTree = null;
         this._onDidChangeTreeData.fire();
     }
 
@@ -133,10 +156,47 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
 		return element;
     }
 
+    getParent(element: vscode.TreeItem): vscode.TreeItem | null {
+		if (element instanceof ElmSignatureItem) {
+			return element.file;
+		}
+		if (element instanceof ElmFileItem) {
+			return null;
+		}
+		return null;
+	}
+
     getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]>{
-        var elmFiles = this.elmSignatureDisplayer.getSignatures();
-        const signatures  = elmFiles.map(file => file.signatures());
-        const allSign = [].concat.apply([], signatures);
-        return allSign.map(s => new vscode.TreeItem(s));
+		if (!this.signatureTree) {
+            let allSign = [];
+
+            const elmFiles = this.elmSignatureDisplayer.getSignatures();
+    
+            for (let elmFile of elmFiles) {
+                const fileName = elmFile.fileName()
+                const signatures = elmFile.signatures();
+    
+                const fileItem = new ElmFileItem(fileName);
+                const signatureItems = signatures.map(sign  => new ElmSignatureItem(sign, fileItem)); 
+                fileItem.setSignatures(signatureItems);
+    
+                allSign.push(fileItem);
+                allSign = allSign.concat(signatureItems);
+            }
+
+            this.signatureTree = allSign;
+		}
+		if (element instanceof ElmSignatureItem) {
+			return [];
+		}
+		if (element instanceof ElmFileItem) {
+			return element.signatures;
+		}
+		if (!element) {
+			if (this.signatureTree) {
+				return this.signatureTree;
+			}
+		}
+		return [];
     }
 }
