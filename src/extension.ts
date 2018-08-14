@@ -41,37 +41,27 @@ class Utils{
 }
 
 class ElmSignatureDisplayer{
-
-    private _statusBarItem: vscode.StatusBarItem =  vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-
-    private saveCounter : number = 0;
-    private elmFilesCounter : number = 0;
     private elmSignatures : Array<ElmFile> = [];
 
     private elmSignatureExtractor : ElmSignatureExtractor = new ElmSignatureExtractor();
     private utils : Utils = new Utils();
 
-    public updateDataFound() {
-        this.saveCounter++;
+    public async updateDataFound() {
+        const elmFiles = await vscode.workspace.findFiles('**/*.elm', '**/{elm-stuff,node_modules}/**');
 
-        const elmDocuments = vscode.workspace.textDocuments.filter(doc => doc.fileName.endsWith('.elm'));
-        this.elmFilesCounter = elmDocuments.length;
-
-        elmDocuments.forEach(elmDoc => {
+        this.elmSignatures = [];
+        elmFiles.forEach(async (elmFile) => {
+            const elmDoc = await vscode.workspace.openTextDocument(elmFile);
             this.elmSignatures.push(new ElmFile(this.utils.basename(elmDoc.fileName), this.elmSignatureExtractor.extract(elmDoc)));
         });
-
-        this._statusBarItem.text = `${this.saveCounter} times saved. ${this.elmFilesCounter} elm files found`;
-        this._statusBarItem.show();
-
-    }
-
-    dispose() {
-        this._statusBarItem.dispose();
     }
 
     getSignatures(): Array<ElmFile>{
         return this.elmSignatures;
+    }
+
+    dispose(){
+
     }
 }
 
@@ -181,7 +171,6 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
                 fileItem.setSignatures(signatureItems);
     
                 allSign.push(fileItem);
-                allSign = allSign.concat(signatureItems);
             }
 
             this.signatureTree = allSign;
