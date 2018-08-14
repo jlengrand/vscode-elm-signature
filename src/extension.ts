@@ -47,8 +47,9 @@ class ElmSignatureDisplayer{
     private utils : Utils = new Utils();
 
     public async updateDataFound() {
-        const elmFiles = await vscode.workspace.findFiles('**/*.elm');
+        const elmFiles = await vscode.workspace.findFiles('**/*.elm', '**/{elm-stuff,node_modules}/**');
 
+        this.elmSignatures = [];
         elmFiles.forEach(async (elmFile) => {
             const elmDoc = await vscode.workspace.openTextDocument(elmFile);
             this.elmSignatures.push(new ElmFile(this.utils.basename(elmDoc.fileName), this.elmSignatureExtractor.extract(elmDoc)));
@@ -170,7 +171,6 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
                 fileItem.setSignatures(signatureItems);
     
                 allSign.push(fileItem);
-                allSign = allSign.concat(signatureItems);
             }
 
             this.signatureTree = allSign;
