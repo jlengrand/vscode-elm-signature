@@ -1,84 +1,35 @@
 'use strict';
 import * as vscode from 'vscode';
+import {ElmSignatureExtractor} from './ElmSignatureExtractor';
 
 export function activate(context: vscode.ExtensionContext) {
 
-    let elmSignatureDisplayer = new ElmSignatureDisplayer();
-    const elmSignatureProvider = new ElmSignatureProvider(elmSignatureDisplayer);
-    let elmSignaturecontroller = new ElmSignatureController(elmSignatureDisplayer, elmSignatureProvider);
+    let elmSignatureExtractor = new ElmSignatureExtractor();
+    const elmSignatureProvider = new ElmSignatureProvider(elmSignatureExtractor);
+    let elmSignatureController = new ElmSignatureController(elmSignatureExtractor, elmSignatureProvider);
 
     vscode.window.registerTreeDataProvider('elmSignatures', elmSignatureProvider);
-    context.subscriptions.push(elmSignatureDisplayer);
-    context.subscriptions.push(elmSignaturecontroller);
+    context.subscriptions.push(elmSignatureExtractor);
+    context.subscriptions.push(elmSignatureController);
 }
 
 export function deactivate() {
 }
 
-class ElmFile{
-    private _fileName: string;
-    private _signatures : string[] = [];
-
-    constructor(fileName: string, signatures: string[]){
-        this._fileName = fileName;
-        this._signatures = signatures;
-    }
-
-    fileName() : string{
-        return this._fileName;
-    }
-
-    signatures() : string[]{
-        return this._signatures;
-    }
-}
-
-class Utils{
-    // TODO: Extract workspace part only
-    basename(path) {
-        return path.split('/').reverse()[0];
-    }
-}
-
-class ElmSignatureDisplayer{
-    private elmSignatures : Array<ElmFile> = [];
-
-    private elmSignatureExtractor : ElmSignatureExtractor = new ElmSignatureExtractor();
-    private utils : Utils = new Utils();
-
-    public async updateDataFound() {
-        const elmFiles = await vscode.workspace.findFiles('**/*.elm', '**/{elm-stuff,node_modules}/**');
-
-        this.elmSignatures = [];
-        elmFiles.forEach(async (elmFile) => {
-            const elmDoc = await vscode.workspace.openTextDocument(elmFile);
-            this.elmSignatures.push(new ElmFile(this.utils.basename(elmDoc.fileName), this.elmSignatureExtractor.extract(elmDoc)));
-        });
-    }
-
-    getSignatures(): Array<ElmFile>{
-        return this.elmSignatures;
-    }
-
-    dispose(){
-
-    }
-}
-
 class ElmSignatureController {
 
-    private elmSignatureDisplayer: ElmSignatureDisplayer;
+    private elmSignatureExtractor: ElmSignatureExtractor;
     private elmSignatureProvider: ElmSignatureProvider;
     private _disposable: vscode.Disposable;
 
-    constructor(elmSignatureDisplayer: ElmSignatureDisplayer, elmSignatureProvider: ElmSignatureProvider) {
-        this.elmSignatureDisplayer = elmSignatureDisplayer;
+    constructor(elmSignatureDisplayer: ElmSignatureExtractor, elmSignatureProvider: ElmSignatureProvider) {
+        this.elmSignatureExtractor = elmSignatureDisplayer;
         this.elmSignatureProvider = elmSignatureProvider;
 
         let subscriptions: vscode.Disposable[] = [];
 
         vscode.workspace.onDidSaveTextDocument(this._onEvent, this, subscriptions);
-        this.elmSignatureDisplayer.updateDataFound();
+        this.elmSignatureExtractor.updateDataFound();
 
         this._disposable = vscode.Disposable.from(...subscriptions);
     }
@@ -88,19 +39,8 @@ class ElmSignatureController {
     }
 
     private _onEvent() {
-        this.elmSignatureDisplayer.updateDataFound();
+        this.elmSignatureExtractor.updateDataFound();
         this.elmSignatureProvider.refresh();
-    }
-}
-
-class ElmSignatureExtractor {
-
-    private elmSignature : string = "\\w+ :(.*)";
-    private elmSignatureRegexp : RegExp = new RegExp(this.elmSignature, "g");
-
-    extract(elmdocument: vscode.TextDocument) : string[] {
-        const text = elmdocument.getText();
-        return  text.match(this.elmSignatureRegexp);
     }
 }
 
@@ -128,13 +68,13 @@ class ElmSignatureItem extends vscode.TreeItem{
 class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
 
     private signatureTree : ElmSignatureItem[] | ElmFileItem[] = null;
-    private elmSignatureDisplayer: ElmSignatureDisplayer;
+    private elmSignatureExtractor: ElmSignatureExtractor;
 
 	private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
     readonly onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
     
-    constructor(elmSignatureDisplayer:ElmSignatureDisplayer){
-        this.elmSignatureDisplayer = elmSignatureDisplayer;
+    constructor(elmSignatureExtractor:ElmSignatureExtractor){
+        this.elmSignatureExtractor = elmSignatureExtractor;
     }
 
     refresh(){
@@ -160,7 +100,7 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
 		if (!this.signatureTree) {
             let allSign = [];
 
-            const elmFiles = this.elmSignatureDisplayer.getSignatures();
+            const elmFiles = this.elmSignatureExtractor.getSignatures();
     
             for (let elmFile of elmFiles) {
                 const fileName = elmFile.fileName()
