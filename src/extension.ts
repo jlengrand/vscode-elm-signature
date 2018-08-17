@@ -1,19 +1,34 @@
 'use strict';
 import * as vscode from 'vscode';
 import {ElmSignatureExtractor} from './ElmSignatureExtractor';
+import {ElmFilterableSignatureProvider, ElmSignatureProvider} from './ElmSignatureProvider';
 
-export function activate(context: vscode.ExtensionContext) {
+let elmSignatureProvider: ElmFilterableSignatureProvider;
+
+export async function activate(context: vscode.ExtensionContext) {
 
     let elmSignatureExtractor = new ElmSignatureExtractor();
-    const elmSignatureProvider = new ElmSignatureProvider(elmSignatureExtractor);
+    elmSignatureProvider = new ElmFilterableSignatureProvider(elmSignatureExtractor);
     let elmSignatureController = new ElmSignatureController(elmSignatureExtractor, elmSignatureProvider);
 
     vscode.window.registerTreeDataProvider('elmSignatures', elmSignatureProvider);
+    vscode.commands.registerCommand('extension.filterElmSignatures', moduleName => vscode.commands.executeCommand('vscode.filterElmSignatures', filterSignatures()));
+
     context.subscriptions.push(elmSignatureExtractor);
     context.subscriptions.push(elmSignatureController);
 }
 
 export function deactivate() {
+}
+
+async function filterSignatures() {
+    const filterValue = await vscode.window.showInputBox();
+
+    if (filterValue == undefined || filterValue.length < 1) {
+        elmSignatureProvider.resetFilter();
+    }
+
+    elmSignatureProvider.filter(filterValue);
 }
 
 class ElmSignatureController {
@@ -41,91 +56,5 @@ class ElmSignatureController {
     private _onEvent() {
         this.elmSignatureExtractor.updateDataFound();
         this.elmSignatureProvider.refresh();
-    }
-}
-
-class ElmFileItem extends vscode.TreeItem{
-    signatures: ElmSignatureItem[];
-
-    constructor(fileName: string){
-        super(fileName, vscode.TreeItemCollapsibleState.Expanded);
-    }
-
-    setSignatures(signatures : ElmSignatureItem[]){
-        this.signatures = signatures;
-    }
-}
-
-class ElmSignatureItem extends vscode.TreeItem{
-    file: ElmFileItem;
-
-    constructor(label, file: ElmFileItem){
-        super(label, vscode.TreeItemCollapsibleState.None);
-        this.file = file;
-    }
-}
-
-class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
-
-    private signatureTree : ElmSignatureItem[] | ElmFileItem[] = null;
-    private elmSignatureExtractor: ElmSignatureExtractor;
-
-	private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
-    readonly onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
-    
-    constructor(elmSignatureExtractor:ElmSignatureExtractor){
-        this.elmSignatureExtractor = elmSignatureExtractor;
-    }
-
-    refresh(){
-        this.signatureTree = null;
-        this._onDidChangeTreeData.fire();
-    }
-
-    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
-		return element;
-    }
-
-    getParent(element: vscode.TreeItem): vscode.TreeItem | null {
-		if (element instanceof ElmSignatureItem) {
-			return element.file;
-		}
-		if (element instanceof ElmFileItem) {
-			return null;
-		}
-		return null;
-	}
-
-    getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]>{
-		if (!this.signatureTree) {
-            let allSign = [];
-
-            const elmFiles = this.elmSignatureExtractor.getSignatures();
-    
-            for (let elmFile of elmFiles) {
-                const fileName = elmFile.fileName()
-                const signatures = elmFile.signatures();
-    
-                const fileItem = new ElmFileItem(fileName);
-                const signatureItems = signatures.map(sign  => new ElmSignatureItem(sign, fileItem)); 
-                fileItem.setSignatures(signatureItems);
-    
-                allSign.push(fileItem);
-            }
-
-            this.signatureTree = allSign;
-		}
-		if (element instanceof ElmSignatureItem) {
-			return [];
-		}
-		if (element instanceof ElmFileItem) {
-			return element.signatures;
-		}
-		if (!element) {
-			if (this.signatureTree) {
-				return this.signatureTree;
-			}
-		}
-		return [];
     }
 }
