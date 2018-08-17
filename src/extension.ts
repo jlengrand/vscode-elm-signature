@@ -9,10 +9,10 @@ export async function activate(context: vscode.ExtensionContext) {
 
     let elmSignatureExtractor = new ElmSignatureExtractor();
     elmSignatureProvider = new ElmFilterableSignatureProvider(elmSignatureExtractor);
-    let elmSignatureController = new ElmSignatureController(elmSignatureExtractor, elmSignatureProvider);
+    let elmSignatureController = new ElmSignatureController(elmSignatureProvider);
 
     vscode.window.registerTreeDataProvider('elmSignatures', elmSignatureProvider);
-    vscode.commands.registerCommand('extension.filterElmSignatures', moduleName => vscode.commands.executeCommand('vscode.filterElmSignatures', filterSignatures()));
+    vscode.commands.registerCommand('extension.filterElmSignatures', _ => vscode.commands.executeCommand('vscode.filterElmSignatures', filterSignatures()));
 
     context.subscriptions.push(elmSignatureExtractor);
     context.subscriptions.push(elmSignatureController);
@@ -33,20 +33,18 @@ async function filterSignatures() {
 
 class ElmSignatureController {
 
-    private elmSignatureExtractor: ElmSignatureExtractor;
     private elmSignatureProvider: ElmSignatureProvider;
     private _disposable: vscode.Disposable;
 
-    constructor(elmSignatureDisplayer: ElmSignatureExtractor, elmSignatureProvider: ElmSignatureProvider) {
-        this.elmSignatureExtractor = elmSignatureDisplayer;
+    constructor(elmSignatureProvider: ElmSignatureProvider) {
         this.elmSignatureProvider = elmSignatureProvider;
 
         let subscriptions: vscode.Disposable[] = [];
 
         vscode.workspace.onDidSaveTextDocument(this._onEvent, this, subscriptions);
-        this.elmSignatureExtractor.updateDataFound();
-
         this._disposable = vscode.Disposable.from(...subscriptions);
+
+        this.elmSignatureProvider.refresh();
     }
 
     dispose() {
@@ -54,7 +52,6 @@ class ElmSignatureController {
     }
 
     private _onEvent() {
-        this.elmSignatureExtractor.updateDataFound();
         this.elmSignatureProvider.refresh();
     }
 }

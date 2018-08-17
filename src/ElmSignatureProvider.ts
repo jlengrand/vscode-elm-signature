@@ -63,8 +63,9 @@ export class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.Tree
         this.elmSignatureExtractor = elmSignatureExtractor;
     }
 
-    refresh(resetTree: boolean = true){
+    async refresh(resetTree: boolean = true){
         if(resetTree){
+            await this.elmSignatureExtractor.updateDataFound();
             this.signatureTree = null;
         }
         this._onDidChangeTreeData.fire();
@@ -94,7 +95,7 @@ export class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.Tree
             allSign.push(filterItem);
 
             const elmFiles = this.elmSignatureExtractor.getSignatures();
-    
+
             for (let elmFile of elmFiles) {
                 const fileName = elmFile.fileName()
                 const signatures = elmFile.signatures();
