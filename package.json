@@ -15,6 +15,10 @@
         "Other"
     ],
     "icon": "images/elm.png",
+    "galleryBanner": {
+        "color": "#5A6378",
+        "theme": "dark"
+      },
     "repository": {
         "type": "git",
         "url": "https://github.com/jlengrand/vscode-elm-signature.git"
