@@ -1,65 +1,54 @@
-# vscode-elm-signature README
+# vscode-elm-signature : Adds hoogle like functionality to your Elm projects
 
-This is the README for your extension "vscode-elm-signature". After writing up a brief description, we recommend including the following sections.
+`vscode-elm-signature` provides [hoogle](https://www.haskell.org/hoogle/) like functionality to your Elm projects. **You can use it to search your codebase to search by function name, or type signature**.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### Signatures overview
 
-For example if there is an image subfolder under your extension project workspace:
+`vscode-elm-signature` keeps an up to date list of all of your Elm function signatures.
 
-\!\[feature X\]\(images/feature-x.png\)
+\!\[signatures-overview\]\(images/signature-list.png\)
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### Filtering
 
-## Requirements
+`vscode-elm-signature` lets you filter signatures per function name, or type signature
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+\!\[filtering\]\(images/filtering.gif\)
 
-## Extension Settings
+Filtering can be done by clicking on the `filter signatures` item in the Tree view.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+`Note: To reset the filter, simply perform another search with an empty filter value`
 
 ## Known Issues
 
 Calling out known issues can help limit users opening duplicate issues against your extension.
 
+You can find a complete list of issues [here](https://github.com/jlengrand/vscode-elm-signature/issues).
+
+However, in short : 
+
+* This extension is a first proof of concept and should **NOT** be considered ready for an exensive usage!
+* The implementation of the extension is currently very naive and requires much more processing than needed. It might also mean that the extension can hang on large projects
+* The current Elm parser is done using a `regex`, which means:
+    * Functions without signatures will not be detected
+    * Spaces in function signatures have to be respected to work properly. Respect [elm-format](https://github.com/avh4/elm-format) conventions for good measure.
+* The UI is most likely to change in the future
+
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+This extension is not officially released yet.
 
-### 1.0.0
 
-Initial release of ...
+## Contributing and copyright
 
-### 1.0.1
+The project is hosted on [GitHub](https://github.com/jlengrand/vscode-elm-signature) where you can [report issues](https://github.com/jlengrand/vscode-elm-signature/issues), fork
+the project and submit pull requests.
 
-Fixed issue #.
+The library is available under [MIT license](https://github.com/jlengrand/vscode-elm-signature/blob/master/LICENSE), which allows modification and redistribution for both commercial and non-commercial purposes.
 
-### 1.1.0
+## Maintainer(s)
 
-Added features X, Y, and Z.
+* Julien Lengrand-Lambert [@jlengrand](https://github.com/jlengrand)
 
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Help is more than welcome!
