@@ -2,18 +2,32 @@
 import * as vscode from 'vscode';
 import {ElmSignatureExtractor} from './ElmSignatureExtractor';
 
-export function activate(context: vscode.ExtensionContext) {
+let elmSignatureProvider: ElmFilterableSignatureProvider;
+
+export async function activate(context: vscode.ExtensionContext) {
 
     let elmSignatureExtractor = new ElmSignatureExtractor();
-    const elmSignatureProvider = new ElmSignatureProvider(elmSignatureExtractor);
+    elmSignatureProvider = new ElmFilterableSignatureProvider(elmSignatureExtractor);
     let elmSignatureController = new ElmSignatureController(elmSignatureExtractor, elmSignatureProvider);
 
     vscode.window.registerTreeDataProvider('elmSignatures', elmSignatureProvider);
+    vscode.commands.registerCommand('extension.filterElmSignatures', moduleName => vscode.commands.executeCommand('vscode.filterElmSignatures', filterSignatures()));
+
     context.subscriptions.push(elmSignatureExtractor);
     context.subscriptions.push(elmSignatureController);
 }
 
 export function deactivate() {
+}
+
+async function filterSignatures() {
+    const filterValue = await vscode.window.showInputBox();
+
+    if (filterValue == undefined || filterValue.length < 1) {
+        elmSignatureProvider.resetFilter();
+    }
+
+    elmSignatureProvider.filter(filterValue);
 }
 
 class ElmSignatureController {
@@ -44,6 +58,18 @@ class ElmSignatureController {
     }
 }
 
+class ElmFilterItem extends vscode.TreeItem{
+    public readonly theCommand: vscode.Command = {
+		title: 'filter signature',
+		command: 'extension.filterElmSignatures'
+	};
+
+    constructor(){
+        super('Filter signatures', vscode.TreeItemCollapsibleState.None);
+        this.command = this.theCommand;
+    }
+}
+
 class ElmFileItem extends vscode.TreeItem{
     signatures: ElmSignatureItem[];
 
@@ -56,7 +82,24 @@ class ElmFileItem extends vscode.TreeItem{
     }
 }
 
-class ElmSignatureItem extends vscode.TreeItem{
+class FilterableTreeItem extends vscode.TreeItem{
+
+    protected visible: boolean = true;
+
+    isVisible(): boolean{
+        return this.visible;
+    }
+
+    toggle(){
+        this.visible = !this.visible;
+    }
+
+    setVisibility(visible: boolean){
+        this.visible = visible;
+    }
+}
+
+class ElmSignatureItem extends FilterableTreeItem{
     file: ElmFileItem;
 
     constructor(label, file: ElmFileItem){
@@ -66,8 +109,7 @@ class ElmSignatureItem extends vscode.TreeItem{
 }
 
 class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
-
-    private signatureTree : ElmSignatureItem[] | ElmFileItem[] = null;
+    protected signatureTree : ElmSignatureItem[] | ElmFileItem[] | ElmFilterItem[] = null;
     private elmSignatureExtractor: ElmSignatureExtractor;
 
 	private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
@@ -77,12 +119,17 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
         this.elmSignatureExtractor = elmSignatureExtractor;
     }
 
-    refresh(){
-        this.signatureTree = null;
+    refresh(resetTree: boolean = true){
+        if(resetTree){
+            this.signatureTree = null;
+        }
         this._onDidChangeTreeData.fire();
     }
 
     getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+        if (element instanceof ElmSignatureItem){
+            return element.isVisible() ? element : null;
+        }
 		return element;
     }
 
@@ -98,7 +145,9 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
 
     getChildren(element?: vscode.TreeItem): vscode.ProviderResult<vscode.TreeItem[]>{
 		if (!this.signatureTree) {
+            const filterItem = new ElmFilterItem();
             let allSign = [];
+            allSign.push(filterItem);
 
             const elmFiles = this.elmSignatureExtractor.getSignatures();
     
@@ -114,7 +163,10 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
             }
 
             this.signatureTree = allSign;
-		}
+        }
+        if(element instanceof ElmFilterItem){
+            return [];
+        }
 		if (element instanceof ElmSignatureItem) {
 			return [];
 		}
@@ -127,5 +179,41 @@ class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.TreeItem>{
 			}
 		}
 		return [];
+    }
+}
+
+class ElmFilterableSignatureProvider extends ElmSignatureProvider{
+
+    filter(filterValue: string){
+        this.filterTree(this.signatureTree, filterValue);
+        this.refresh(false);
+    }
+
+    private filterTree(tree: ElmSignatureItem[] | ElmFileItem[] | ElmFilterItem[], filterValue: string){
+        for(let item of tree){
+            if(item instanceof ElmSignatureItem){
+                if(item.label && !item.label.toLocaleLowerCase().includes(filterValue.toLocaleLowerCase())){
+                    item.setVisibility(false);
+                }
+            }
+            if (item instanceof ElmFileItem) {
+                this.filterTree(item.signatures, filterValue);
+            }
+        }
+    }
+
+    resetFilter(){
+        this.resetFilterTree(this.signatureTree);
+    }
+
+    private resetFilterTree(tree: ElmSignatureItem[] | ElmFileItem[] | ElmFilterItem[]){
+        for(let item of tree){
+            if(item instanceof ElmSignatureItem){
+                item.setVisibility(true);
+            }
+            if (item instanceof ElmFileItem) {
+                this.resetFilterTree(item.signatures);
+            }
+        }
     }
 }
