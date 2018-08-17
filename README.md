@@ -8,13 +8,13 @@
 
 `vscode-elm-signature` keeps an up to date list of all of your Elm function signatures.
 
-\!\[signatures-overview\]\(images/signature-list.png\)
+![signatures-overview](images/signature-list.png)
 
 ### Filtering
 
 `vscode-elm-signature` lets you filter signatures per function name, or type signature
 
-\!\[filtering\]\(images/filtering.gif\)
+![filtering](images/filtering.gif)
 
 Filtering can be done by clicking on the `filter signatures` item in the Tree view.
 
