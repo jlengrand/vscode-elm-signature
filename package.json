@@ -2,7 +2,7 @@
     "name": "vscode-elm-signature",
     "displayName": "elm-signature",
     "description": "elm-signature provides hoogle like functionality to your Elm projects. You can use it to search your codebase to search by function name, or type signature",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "license": "MIT",
     "publisher": "jlengrand",
     "author": {
