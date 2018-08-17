@@ -2,6 +2,8 @@
 
 `vscode-elm-signature` provides [hoogle](https://www.haskell.org/hoogle/) like functionality to your Elm projects. **You can use it to search your codebase to search by function name, or type signature**.
 
+You can install **[**the extension here](https://marketplace.visualstudio.com/items?itemName=jlengrand.vscode-elm-signature)**.
+
 This project si still in a very early phase and should be used with caution. See below for a list of current limitations.
 
 ## Features
@@ -39,8 +41,7 @@ However, in short :
 
 ## Release Notes
 
-This extension is not officially released yet.
-
+See the [Release Notes](CHANGELOG.md)
 
 ## Contributing and copyright
 
