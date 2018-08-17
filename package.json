@@ -1,20 +1,45 @@
 {
     "name": "vscode-elm-signature",
-    "displayName": "vscode-elm-signature",
-    "description": "vscode-elm-signature keeps track of all the functions in your elm repository and shows their signature so you can easily use them",
-    "version": "0.0.1",
+    "displayName": "elm-signature",
+    "description": "elm-signature provides hoogle like functionality to your Elm projects. You can use it to search your codebase to search by function name, or type signature",
+    "version": "0.1.0",
     "license": "MIT",
     "publisher": "jlengrand",
+    "author": {
+        "name": "Julien Lengrand-Lambert <julien@lengrand.fr> (http://lengrand.fr)"
+    },
     "engines": {
         "vscode": "^1.25.0"
     },
     "categories": [
         "Other"
     ],
+    "icon": "images/elm.png",
+    "galleryBanner": {
+        "color": "#5A6378",
+        "theme": "dark"
+      },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jlengrand/vscode-elm-signature.git"
+      },
+      "bugs": {
+        "url": "https://github.com/jlengrand/vscode-elm-signature/issues"
+      },
     "main": "./out/extension",
     "activationEvents": [
         "workspaceContains:**/*.elm"
     ],
+    "contributes": {
+        "views": {
+            "explorer": [
+                {
+                    "id": "elmSignatures",
+                    "name": "Elm Signatures"
+                }
+            ]
+        }
+    },
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
