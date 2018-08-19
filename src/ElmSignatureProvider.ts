@@ -137,13 +137,18 @@ export class ElmFilterableSignatureProvider extends ElmSignatureProvider{
 
     private filterParents(tree: ElmSignatureItem[] | ElmFileItem[] | ElmFilterItem[]){
         for(let item of tree){
-            if(item instanceof ElmFileItem && !item.signatures.every(sign => sign.isVisible())){
+            if(item instanceof ElmFileItem && item.signatures.every(sign => !sign.isVisible())){
                 item.setVisibility(false);
             }
         }
     }
 
     private filterTreeItems(tree: ElmSignatureItem[] | ElmFileItem[] | ElmFilterItem[], filterValue: string){
+        if(!filterValue || filterValue.length < 1){
+            this.resetFilter();
+            return;
+        }
+
         for(let item of tree){
             if(item instanceof ElmSignatureItem){
                 if(item.label && !item.label.toLocaleLowerCase().includes(filterValue.toLocaleLowerCase())){
@@ -166,6 +171,7 @@ export class ElmFilterableSignatureProvider extends ElmSignatureProvider{
                 item.setVisibility(true);
             }
             if (item instanceof ElmFileItem) {
+                item.setVisibility(true);
                 this.resetFilterTree(item.signatures);
             }
         }
