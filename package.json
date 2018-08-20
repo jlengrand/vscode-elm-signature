@@ -18,14 +18,14 @@
     "galleryBanner": {
         "color": "#eff1f3",
         "theme": "light"
-      },
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/jlengrand/vscode-elm-signature.git"
-      },
-      "bugs": {
+    },
+    "bugs": {
         "url": "https://github.com/jlengrand/vscode-elm-signature/issues"
-      },
+    },
     "main": "./out/extension",
     "activationEvents": [
         "workspaceContains:**/*.elm"
@@ -53,5 +53,8 @@
         "tslint": "^5.8.0",
         "@types/node": "^7.0.43",
         "@types/mocha": "^2.2.42"
+    },
+    "dependencies": {
+        "parsimmon": "^1.12.0"
     }
 }
