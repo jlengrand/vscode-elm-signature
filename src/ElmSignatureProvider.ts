@@ -13,18 +13,6 @@ class ElmFilterItem extends vscode.TreeItem{
     }
 }
 
-class ElmFileItem extends vscode.TreeItem{
-    signatures: ElmSignatureItem[];
-
-    constructor(fileName: string){
-        super(fileName, vscode.TreeItemCollapsibleState.Expanded);
-    }
-
-    setSignatures(signatures : ElmSignatureItem[]){
-        this.signatures = signatures;
-    }
-}
-
 class FilterableTreeItem extends vscode.TreeItem{
 
     protected visible: boolean = true;
@@ -39,6 +27,18 @@ class FilterableTreeItem extends vscode.TreeItem{
 
     setVisibility(visible: boolean){
         this.visible = visible;
+    }
+}
+
+class ElmFileItem extends FilterableTreeItem{
+    signatures: ElmSignatureItem[];
+
+    constructor(fileName: string){
+        super(fileName, vscode.TreeItemCollapsibleState.Expanded);
+    }
+
+    setSignatures(signatures : ElmSignatureItem[]){
+        this.signatures = signatures;
     }
 }
 
@@ -72,7 +72,7 @@ export class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.Tree
     }
 
     getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
-        if (element instanceof ElmSignatureItem){
+        if (element instanceof ElmSignatureItem || element instanceof ElmFileItem){
             return element.isVisible() ? element : null;
         }
 		return element;
@@ -130,11 +130,25 @@ export class ElmSignatureProvider implements vscode.TreeDataProvider<vscode.Tree
 export class ElmFilterableSignatureProvider extends ElmSignatureProvider{
 
     filter(filterValue: string){
-        this.filterTree(this.signatureTree, filterValue);
+        this.filterTreeItems(this.signatureTree, filterValue);
+        this.filterParents(this.signatureTree);
         this.refresh(false);
     }
 
-    private filterTree(tree: ElmSignatureItem[] | ElmFileItem[] | ElmFilterItem[], filterValue: string){
+    private filterParents(tree: ElmSignatureItem[] | ElmFileItem[] | ElmFilterItem[]){
+        for(let item of tree){
+            if(item instanceof ElmFileItem && item.signatures.every(sign => !sign.isVisible())){
+                item.setVisibility(false);
+            }
+        }
+    }
+
+    private filterTreeItems(tree: ElmSignatureItem[] | ElmFileItem[] | ElmFilterItem[], filterValue: string){
+        if(!filterValue || filterValue.length < 1){
+            this.resetFilter();
+            return;
+        }
+
         for(let item of tree){
             if(item instanceof ElmSignatureItem){
                 if(item.label && !item.label.toLocaleLowerCase().includes(filterValue.toLocaleLowerCase())){
@@ -142,7 +156,7 @@ export class ElmFilterableSignatureProvider extends ElmSignatureProvider{
                 }
             }
             if (item instanceof ElmFileItem) {
-                this.filterTree(item.signatures, filterValue);
+                this.filterTreeItems(item.signatures, filterValue);
             }
         }
     }
@@ -157,6 +171,7 @@ export class ElmFilterableSignatureProvider extends ElmSignatureProvider{
                 item.setVisibility(true);
             }
             if (item instanceof ElmFileItem) {
+                item.setVisibility(true);
                 this.resetFilterTree(item.signatures);
             }
         }
