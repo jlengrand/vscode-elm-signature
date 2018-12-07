@@ -1,10 +1,10 @@
 # vscode-elm-signature : Adds hoogle like functionality to your Elm projects
 
-`vscode-elm-signature` provides [hoogle](https://www.haskell.org/hoogle/) like functionality to your Elm projects. **You can use it to search your codebase to search by function name, or type signature**.
+`vscode-elm-signature` provides [hoogle](https://www.haskell.org/hoogle/)-like functionality to your Elm projects. **You can use it to search your codebase to search by function name, or type signature**.
 
-You can install **[**the extension here](https://marketplace.visualstudio.com/items?itemName=jlengrand.vscode-elm-signature)**.
+You can install **[the extension here](https://marketplace.visualstudio.com/items?itemName=jlengrand.vscode-elm-signature)**.
 
-This project si still in a very early phase and should be used with caution. See below for a list of current limitations.
+This project is still in a very early phase, and should be used with caution. See below for a list of current limitations.
 
 ## Features
 
@@ -26,18 +26,16 @@ Filtering can be done by clicking on the `filter signatures` item in the Tree vi
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
 You can find a complete list of issues [here](https://github.com/jlengrand/vscode-elm-signature/issues).
 
-However, in short : 
+However, in short:
 
-* This extension is a first proof of concept and should **NOT** be considered ready for an exensive usage!
-* The implementation of the extension is currently very naive and requires much more processing than needed. It might also mean that the extension can hang on large projects
+* This extension is a first proof of concept and should **NOT** be considered ready for extensive usage!
+* The implementation of the extension is currently very naive, and requires much more processing than needed. It might also mean that the extension can hang on large projects.
 * The current Elm parser is done using a `regex`, which means:
     * Functions without signatures will not be detected
     * Spaces in function signatures have to be respected to work properly. Respect [elm-format](https://github.com/avh4/elm-format) conventions for good measure.
-* The UI is most likely to change in the future
+* The UI is very likely to change in the future
 
 ## Release Notes
 
@@ -45,8 +43,7 @@ See the [Release Notes](CHANGELOG.md)
 
 ## Contributing and copyright
 
-The project is hosted on [GitHub](https://github.com/jlengrand/vscode-elm-signature) where you can [report issues](https://github.com/jlengrand/vscode-elm-signature/issues), fork
-the project and submit pull requests.
+The project is hosted on [GitHub](https://github.com/jlengrand/vscode-elm-signature) where you can [report issues](https://github.com/jlengrand/vscode-elm-signature/issues), fork the project and submit pull requests.
 
 The library is available under [MIT license](https://github.com/jlengrand/vscode-elm-signature/blob/master/LICENSE), which allows modification and redistribution for both commercial and non-commercial purposes.
 
